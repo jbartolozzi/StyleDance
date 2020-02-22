@@ -12,6 +12,7 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("inputs", nargs='+', help="Path(s) to input files.")
     parser.add_argument("output_directory", help="Path to output directory.")
+    parser.add_argument("-resize", type=int, default=512, help="Resolution to resize to.")
     parser.add_argument("-gpu", "--gpu", type=int,
                         help="Gpu Number.", default=2)
 
@@ -56,40 +57,33 @@ def main():
 
     inferencer = predictor.VisualizationDemo(cfg, parallel=True)
     item_counter = 0
-    for input in inputs:
-        # Handle Video
-        video_file = cv2.VideoWriter(
-            filename=os.path.join(output_directory, "video.mkv"),
-            # some installation of opencv may not support x264 (due to its license),
-            # you can try other format (e.g. MPEG)
-            fourcc=cv2.VideoWriter_fourcc(*"x264"),
-            fps=float(24),
-            frameSize=(512, 512),
-            isColor=True,
-        )
 
-        if input.endswith("mp4"):
-            video = cv2.VideoCapture(input)
+    resolution = args.resize
+
+    video_file = cv2.VideoWriter(
+        filename=os.path.join(output_directory, "video.mkv"),
+        # some installation of opencv may not support x264 (due to its license),
+        # you can try other format (e.g. MPEG)
+        fourcc=cv2.VideoWriter_fourcc(*"x264"),
+        fps=float(60),
+        frameSize=(resolution, resolution),
+        isColor=True,
+    )
+
+    for input_video in inputs:
+        if input_video.endswith("mp4"):
+            video = cv2.VideoCapture(input_video)
             width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
             height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            # frames_per_second = video.get(cv2.CAP_PROP_FPS)
             num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-            # basename = os.path.basename(input)
-
-            for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, 512), total=num_frames):
+            for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution), total=num_frames):
                 if vis_frame is not None:
                     vis_frame.save(
                         os.path.join(output_directory, "images", "%s.png" % item_counter))
                     video_file.write(np.asarray(vis_frame)[:, :, ::-1])
                     item_counter += 1
 
-        video_file.release()
-        # # Handle single images
-        # elif input.endswith("jpg") or input.endswith("png"):
-        #     pass
-        # else:
-        #     print("Unhandled file type %s." % input)
-        #     continue
+    video_file.release()
 
 
 if __name__ == "__main__":
