@@ -42,7 +42,8 @@ class VisualizationDemo(object):
         classes = predictions2.pred_classes
         things = self.metadata.get("thing_classes", None)
 
-        people_list = list(idx for idx, value in enumerate(classes) if things[value] == target_instance and scores[idx] > 0.9)
+        people_list = list(idx for idx, value in enumerate(classes)
+                           if things[value] == target_instance and scores[idx] > 0.9)
 
         # def calc_spread(val, offset, ceiling):
         #     if val + offset > ceiling:
@@ -85,6 +86,8 @@ class VisualizationDemo(object):
             if minx < 0 or maxx > resx or miny < 0 or maxy > resy:
                 return None
             bbox = (minx, miny, maxx, maxy)
+            if (maxx - minx) < 256 or (maxy - miny) < 256:
+                return None
             cropped_img = Image.fromarray(
                 frame[:, :, ::-1]).crop(bbox).resize((target_size, target_size), Image.ANTIALIAS)
             return cropped_img
@@ -175,17 +178,17 @@ class VisualizationDemo(object):
                 if cnt >= buffer_size:
                     frame = frame_data.popleft()
                     predictions = self.predictor.get()
-                    yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 5)
+                    yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 16)
                     # yield process_predictions(frame, predictions)
 
             while len(frame_data):
                 frame = frame_data.popleft()
                 predictions = self.predictor.get()
-                yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 5)
+                yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 16)
                 # yield process_predictions(frame, predictions)
         else:
             for frame in frame_gen:
-                yield self.bbox_crop(frame, self.predictor(frame), width, height, target_size, "person", 5)
+                yield self.bbox_crop(frame, self.predictor(frame), width, height, target_size, "person", 16)
                 # yield process_predictions(frame, self.predictor(frame))
 
 

@@ -10,7 +10,7 @@ import predictor
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("inputs", nargs='+', help="Path(s) to input files.")
+    parser.add_argument("inputs", help="Path(s) to input files.")
     parser.add_argument("output_directory", help="Path to output directory.")
     parser.add_argument("-resize", type=int, default=512, help="Resolution to resize to.")
     parser.add_argument("-gpu", "--gpu", type=int,
@@ -70,18 +70,22 @@ def main():
         isColor=True,
     )
 
+    inputs = []
+    inputs = list(os.path.join(args.inputs, file) for file in os.listdir(
+        args.inputs) if os.path.exists(os.path.join(args.inputs, file) and "mp4" in os.path.join(args.inputs, file)))
+
     for input_video in inputs:
-        if input_video.endswith("mp4"):
-            video = cv2.VideoCapture(input_video)
-            width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
-            height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-            for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution), total=num_frames):
-                if vis_frame is not None:
-                    vis_frame.save(
-                        os.path.join(output_directory, "images", "%s.png" % item_counter))
-                    video_file.write(np.asarray(vis_frame)[:, :, ::-1])
-                    item_counter += 1
+        print("Processing:", input_video)
+        video = cv2.VideoCapture(input_video)
+        width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
+        for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution), total=num_frames):
+            if vis_frame is not None:
+                vis_frame.save(
+                    os.path.join(output_directory, "images", "%s.png" % item_counter))
+                video_file.write(np.asarray(vis_frame)[:, :, ::-1])
+                item_counter += 1
 
     video_file.release()
 
