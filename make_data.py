@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument("inputs", help="Path(s) to input files.")
     parser.add_argument("output_directory", help="Path to output directory.")
     parser.add_argument("-resize", type=int, default=512, help="Resolution to resize to.")
+    parser.add_argument("-padding", type=int, default=16, help="Image padding around bbox.")
     parser.add_argument("-gpu", "--gpu", type=int,
                         help="Gpu Number.", default=2)
 
@@ -80,7 +81,7 @@ def main():
         width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
         num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution), total=num_frames):
+        for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution, padding=args.padding), total=num_frames):
             if vis_frame is not None:
                 vis_frame.save(
                     os.path.join(output_directory, "images", "%s.png" % item_counter))

@@ -133,7 +133,7 @@ class VisualizationDemo(object):
             else:
                 break
 
-    def run_on_video(self, video, width, height, target_size):
+    def run_on_video(self, video, width, height, target_size, padding):
         """
         Visualizes predictions on frames of the input video.
 
@@ -178,17 +178,17 @@ class VisualizationDemo(object):
                 if cnt >= buffer_size:
                     frame = frame_data.popleft()
                     predictions = self.predictor.get()
-                    yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 16)
+                    yield self.bbox_crop(frame, predictions, width, height, target_size, "person", padding)
                     # yield process_predictions(frame, predictions)
 
             while len(frame_data):
                 frame = frame_data.popleft()
                 predictions = self.predictor.get()
-                yield self.bbox_crop(frame, predictions, width, height, target_size, "person", 16)
+                yield self.bbox_crop(frame, predictions, width, height, target_size, "person", padding)
                 # yield process_predictions(frame, predictions)
         else:
             for frame in frame_gen:
-                yield self.bbox_crop(frame, self.predictor(frame), width, height, target_size, "person", 16)
+                yield self.bbox_crop(frame, self.predictor(frame), width, height, target_size, "person", padding)
                 # yield process_predictions(frame, self.predictor(frame))
 
 
