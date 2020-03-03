@@ -1,0 +1,9 @@
+./source
+./output
+./youtube_downloads
+./results
+./datasets
+./detectron2
+./surf_videos
+./dance_videos
+./*
