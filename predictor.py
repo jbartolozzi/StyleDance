@@ -43,11 +43,10 @@ class VisualizationDemo(object):
         things = self.metadata.get("thing_classes", None)
 
         people_list = list(idx for idx, value in enumerate(classes)
-                           if things[value] == target_instance and scores[idx] > 0.9)
+                           if things[value] == target_instance and scores[idx] >= 0.9)
 
         # def calc_spread(val, offset, ceiling):
         #     if val + offset > ceiling:
-
         if len(people_list) > 0:
             max_score, max_index = scores.max(0)
             max_bbox = boxes[int(max_index)]
@@ -57,15 +56,22 @@ class VisualizationDemo(object):
             minx, miny, maxx, maxy = max_bbox.tensor.tolist()[0]
             bbox_width, bbox_height = (maxx - minx), (maxy - miny)
 
+            # Offset the image to make it square and add in padding
             if bbox_width > bbox_height:
-                offset = (bbox_width - bbox_height) + padding
+                offset = (bbox_width - bbox_height)
                 maxy += offset / 2
                 miny -= offset / 2
             else:
-                offset = (bbox_height - bbox_width) + padding
+                offset = (bbox_height - bbox_width)
                 maxx += offset / 2
                 minx -= offset / 2
 
+            maxy += padding
+            maxx += padding
+            minx -= padding
+            miny -= padding
+
+            # Try to adjust image to make it valid
             if minx < 0:
                 shift = abs(minx)
                 minx += shift
@@ -83,14 +89,16 @@ class VisualizationDemo(object):
                 miny -= shift
                 maxy -= shift
 
-            if minx < 0 or maxx > resx or miny < 0 or maxy > resy:
+            if (minx < 0 or maxx > resx or miny < 0 or maxy > resy): #or ((maxx - minx) < 256 or (maxy - miny) < 256):
+                print("Skipping")
+                print(minx, maxx, miny, maxy)
+                print((maxx - minx), (maxy - miny))
                 return None
-            bbox = (minx, miny, maxx, maxy)
-            if (maxx - minx) < 256 or (maxy - miny) < 256:
-                return None
-            cropped_img = Image.fromarray(
-                frame[:, :, ::-1]).crop(bbox).resize((target_size, target_size), Image.ANTIALIAS)
-            return cropped_img
+            else:
+                bbox = (minx, miny, maxx, maxy)
+                cropped_img = Image.fromarray(
+                    frame[:, :, ::-1]).crop(bbox).resize((target_size, target_size), Image.ANTIALIAS)
+                return cropped_img
         else:
             return None
 

@@ -27,8 +27,10 @@ def setup_cfg():
     config_file = "./detectron2/configs/quick_schedules/mask_rcnn_R_50_FPN_inference_acc_test.yaml"
     cfg.merge_from_file(config_file)
 
-    opts = ["MODEL.WEIGHTS",
-            "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"]
+    # opts = ["MODEL.WEIGHTS",
+    #         "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"]
+    
+    opts = ["MODEL.WEIGHTS", "detectron_model.pkl"]
     cfg.merge_from_list(opts)
     # Set score_threshold for builtin models
     confidence_threshold = 0.5
@@ -81,7 +83,7 @@ def main():
         width = int(video.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(video.get(cv2.CAP_PROP_FRAME_HEIGHT))
         num_frames = int(video.get(cv2.CAP_PROP_FRAME_COUNT))
-        for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution, padding=args.padding), total=num_frames):
+        for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution, args.padding), total=num_frames):
             if vis_frame is not None:
                 vis_frame.save(
                     os.path.join(output_directory, "images", "%s.png" % item_counter))
