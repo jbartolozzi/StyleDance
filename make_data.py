@@ -10,7 +10,7 @@ import predictor
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("inputs", help="Path(s) to input files.")
+    parser.add_argument("input_directory", help="Path to input directory.")
     parser.add_argument("output_directory", help="Path to output directory.")
     parser.add_argument("-resize", type=int, default=512, help="Resolution to resize to.")
     parser.add_argument("-padding", type=int, default=16, help="Image padding around bbox.")
@@ -29,7 +29,7 @@ def setup_cfg():
 
     # opts = ["MODEL.WEIGHTS",
     #         "detectron2://COCO-InstanceSegmentation/mask_rcnn_R_50_FPN_3x/137849600/model_final_f10217.pkl"]
-    
+
     opts = ["MODEL.WEIGHTS", "detectron_model.pkl"]
     cfg.merge_from_list(opts)
     # Set score_threshold for builtin models
@@ -47,16 +47,14 @@ def main():
 
     mp.set_start_method("spawn", force=True)
 
-    inputs = args.inputs
     output_directory = args.output_directory
 
     if not os.path.exists(output_directory):
-        try:
-            os.makedirs(output_directory)
-            os.mkdir(os.path.join(output_directory, "images"))
-        except:
-            print("Unable to create output directory %s" % output_directory)
-            return
+        os.mkdir(output_directory)
+
+    image_dir = os.path.join(output_directory, "images")
+    if not os.path.exists(image_dir):
+        os.mkdir(image_dir)
 
     inferencer = predictor.VisualizationDemo(cfg, parallel=True)
     item_counter = 0
@@ -74,8 +72,10 @@ def main():
     )
 
     inputs = []
-    inputs = list(os.path.join(args.inputs, file) for file in os.listdir(
-        args.inputs) if os.path.exists(os.path.join(args.inputs, file) and "mp4" in os.path.join(args.inputs, file)))
+    inputs = list(os.path.join(args.input_directory, file) for file in os.listdir(
+        args.input_directory) if os.path.exists(os.path.join(args.input_directory, file) and "mp4" in os.path.join(args.input_directory, file)))
+
+    print("Processing the following inputs:\n%s" % "    " + "\n    ".join(inputs))
 
     for input_video in inputs:
         print("Processing:", input_video)
@@ -86,7 +86,7 @@ def main():
         for vis_frame in tqdm.tqdm(inferencer.run_on_video(video, width, height, resolution, args.padding), total=num_frames):
             if vis_frame is not None:
                 vis_frame.save(
-                    os.path.join(output_directory, "images", "%s.png" % item_counter))
+                    os.path.join(image_dir, "%s.png" % item_counter))
                 video_file.write(np.asarray(vis_frame)[:, :, ::-1])
                 item_counter += 1
 

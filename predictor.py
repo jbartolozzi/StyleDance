@@ -89,10 +89,7 @@ class VisualizationDemo(object):
                 miny -= shift
                 maxy -= shift
 
-            if (minx < 0 or maxx > resx or miny < 0 or maxy > resy): #or ((maxx - minx) < 256 or (maxy - miny) < 256):
-                print("Skipping")
-                print(minx, maxx, miny, maxy)
-                print((maxx - minx), (maxy - miny))
+            if (minx < 0 or maxx > resx or miny < 0 or maxy > resy):
                 return None
             else:
                 bbox = (minx, miny, maxx, maxy)
